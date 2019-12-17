@@ -1,5 +1,3 @@
-# magento-payment-integration-novalnet
-Magento Payment Integration by Novalnet
 # MAGENTO 1 PAYMENT INTEGRATION BY NOVALNET
 Our Magento Payment Gateway by Novalnet enables secure integration of payments and payment services for Magento 1 shops all under one roof.  You get access to <a href="https://www.novalnet.de/produkte"> optimize payment processing </a>, enriched customer experiences and improved conversion rates. One platform, simple integration and one contract partner from checkout to collection.
 ## Payment Integration requirement 

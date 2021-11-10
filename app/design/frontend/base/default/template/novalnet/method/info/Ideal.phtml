@@ -1,0 +1,49 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$info = $this->getInfo();
+$helper = Mage::helper('novalnet_payment');
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $info->getLastTransId();
+?>
+<?php if ($info): ?>
+<?php if ($this->getAdditionalData('NnTestOrder')): ?>
+    <div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">
+        <?php echo $this->__('Testorder'); ?>
+    </div>
+<?php endif; ?>
+<?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br />
+<?php if ($transactionId): ?>
+    <?php echo $this->escapeHtml($this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId))) ?><br /><br />
+<?php endif; ?>
+<?php if ($this->getAdditionalData('refunded_tid')): ?>
+<?php foreach ($this->getAdditionalData('refunded_tid') as $key => $value): ?>
+	<?php
+		echo $this->escapeHtml(
+			$this->__(
+				'Refund has been initiated for the TID: %s with the amount %s. New TID: %s for the refunded amount %s',
+				$helper->makeValidNumber($value['reqtid']), $value['refamount'],
+				$helper->makeValidNumber($value['reftid']), $value['refamount']
+			)
+		);
+	?><br /><br />
+<?php endforeach;?>
+<?php endif; ?>
+<?php if ($this->getAdditionalData('NnComments')): ?>
+    <?php echo $this->getAdditionalData('NnComments'); ?>
+<?php endif; ?>
+<?php endif; ?>

@@ -1,0 +1,115 @@
+<!--@subject Novalnet Callback Email@-->
+<!--@vars
+{
+  "var toName"   :"Receiver Name",
+  "var toEmail"  :"Receiver Email",
+  "var fromName" :"Sender Name",
+  "var fromEmail":"Sender Email",
+  "var subject"  :"Mail Subject",
+  "var body"     :"Mail Body"
+}
+@-->
+<body style="background:#F6F6F6; font-family:Verdana, Arial, Helvetica, sans-serif; font-size:14px; margin:0; padding:0;">
+    <div style="width:55%;height:auto;margin: 0 auto;background:rgb(247, 247, 247);border: 2px solid rgb(223, 216, 216);border-radius: 5px;box-shadow: 1px 7px 10px -2px #ccc;">
+        <div style="min-height: 300px;padding:20px;">
+            <table cellspacing="0" cellpadding="0" border="0" width="100%">
+                <tr class="email-intro">
+                    <td>
+                        <p class="greeting">Dear {{var toName}}</p>
+                        <p>
+                            {{var message}}
+                        </p>
+                        <br>
+                    </td>
+                </tr>
+                <tr class="email-information">
+                    <td>
+                        <table class="message-info">
+                            <tr>
+                                <td>
+                                    <strong>Merchant ID</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var merchantId}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Product ID</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var productId}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>TID</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var tid}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>TID status</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var tidStatus}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>order no</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var orderNo}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>Payment type</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var paymentType}}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>E-mail</strong>
+                                </td>
+                                <td>
+                                    <p>:</p>
+                                </td>
+                                <td>
+                                    {{var endUserMail}}
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <br>
+            <p>Regards,<br>
+            {{var regards}}</p>
+        </div>
+        <div style='width:100%;height:20px;background:#00669D;'></div>
+    </div>
+</body>

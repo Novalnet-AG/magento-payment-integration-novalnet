@@ -1,0 +1,237 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$config = $helper->getModel('Service_Abstract');
+$billingInfo = $this->getBillingInfo();
+$maskedAccountInfo = $this->getMethod()->getExistingTransInfo();
+$oneClickShopping = ($this->getMethod()->getConfigData('sepa_shop_type') == 1 && $maskedAccountInfo) ? 1 : '';
+$customerSession = $helper->getCustomerSession();
+$dateOfBirth = ($customerSession->isLoggedIn() &&
+                $customerSession->getCustomer()->hasDob() ? $customerSession->getCustomer()->getDob() : '');
+$dateOfBirth = $dateOfBirth ? Mage::getSingleton('core/date')->gmtDate('Y-m-d', $dateOfBirth) : '';
+$company = $helper->getEndUserCompany();
+?>
+
+<ul class="form-list" id="payment_form_<?php echo $this->escapeHtml($code); ?>" style="display:none;">
+    <!-- Direct Debit SEPA payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>
+                <?php
+                    $imgpath = $helper->getPaymentLogoUrl() . "sepa.png";
+                    if ($this->getMethod()->getConfigData('logo')):
+                        $imgpath = $helper->getCustomPaymentLogoUrl() . $this->getMethod()->getConfigData('logo');
+                    endif;
+                ?>
+                <img class="nn-logo-img"
+                     src="<?php echo $this->escapeHtml($imgpath); ?>"
+                     alt="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>"
+                     title="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Direct Debit SEPA payment logo -->
+    <div class="nn-loader"
+         id='sepa_loading'
+         style="background:
+         url('<?php echo $this->escapeHtml($helper->getPaymentLogoUrl()); ?>novalnet-loading-icon.gif')
+         50% 50% no-repeat;"></div>
+    <!-- Payment description -->
+    <li>
+        <?php echo $this->escapeHtml($this->__('The amount will be debited from your account by Novalnet')); ?>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->escapeHtml($this->getUserInfo()); ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == false): ?>
+        <li>
+            <div class="nn-mode">
+                <?php
+                    echo $this->escapeHtml(
+                        $this->__(
+                            'Please Note: This transaction will run on TEST MODE and the amount will not be charged'
+                        )
+                    );
+                ?>
+            </div>
+        </li>
+    <?php endif; ?>
+    <!-- Display the payment mode notification -->
+    <!-- Direct Debit SEPA shopping type link -->
+    <div id="sepa_oneclick_link" style="cursor:pointer;display:none;">
+        <ul>
+            <li>
+                <span id ='sepa_title_new' onclick='SepaFormChange("new")' style='color:blue'>
+                    <u><b><?php echo $this->escapeHtml($this->__('Enter account details')); ?></b></u>
+                </span>
+                <span id ='sepa_title_given' onclick='SepaFormChange("given")' style='color:blue'>
+                    <u><b><?php echo $this->escapeHtml($this->__('Given account details')); ?></b></u>
+                </span>
+            </li>
+        </ul>
+    </div>
+    <!-- Direct Debit SEPA shopping type link -->
+    <!-- Direct Debit SEPA given form -->
+    <div id="sepa_oneclick_given">
+        <?php if ($oneClickShopping): ?>
+            <ul>
+                <li>
+                    <label>
+                        <?php
+                            echo $this->escapeHtml(
+                                $this->__('Account Holder') . ': ' . $maskedAccountInfo['account_holder']
+                            );
+                        ?>
+                    </label>
+                </li>
+                <li>
+                    <label>
+                        <?php echo $this->escapeHtml($this->__('IBAN') . ': ' . $maskedAccountInfo['iban']); ?>
+                    </label>
+                </li>
+            </ul>
+        <?php Endif; ?>
+    </div>
+    <!-- Direct Debit SEPA given form -->
+    <!-- Direct Debit SEPA local form -->
+    <div id="sepa_local_form">
+        <li>
+            <p class="required"><?php echo $this->escapeHtml($this->__('* Required Fields')); ?></p>
+            <label for="<?php echo $this->escapeHtml($code); ?>_account_holder" class="required">
+                <em>*</em><?php echo $this->escapeHtml($this->__('Account Holder')); ?>
+            </label>
+            <div class="input-box">
+                <input type="text"
+                       title="<?php echo $this->escapeHtml($this->__('Account Holder')); ?>"
+                       class="required-entry input-text" id="<?php echo $this->escapeHtml($code); ?>_account_holder"
+                       onkeypress="return sepaFormValidate(event)"
+                       name="<?php echo $this->escapeHtml($code); ?>_account_holder" autocomplete="off"
+                       value="<?php
+                       echo $this->escapeHtml($billingInfo->getFirstname() . ' ' . $billingInfo->getLastname()); ?>" />
+            </div>
+        </li>
+        <li>
+            <label for="<?php echo $this->escapeHtml($code); ?>_account_number"
+                   class="required">
+                <em>*</em><?php echo $this->escapeHtml($this->__('IBAN')); ?>
+            </label>
+            <div class="input-box">
+                <input type="text"
+                       id="<?php echo $this->escapeHtml($code); ?>_account_number"
+                       name="<?php echo $this->escapeHtml($code); ?>_account_number"
+                       onkeypress = "return NovalnetUtility.formatIban(event)"
+                       onchange = "return NovalnetUtility.formatIban(event)"
+                       title="<?php echo $this->escapeHtml($this->__('IBAN')); ?>"
+                       class="required-entry input-text"
+                       autocomplete="off"
+                       value="" />
+            </div>
+        </li>
+        <li class="fields">
+            <div class="form-group">
+                <a id = "sepa_mandate_toggle" style = "cursor:pointer;" class="resp-accordion"><strong><strong><?php echo $this->escapeHtml($this->__('I hereby grant the mandate for the SEPA direct debit')) ?></strong> <?php echo $this->escapeHtml($this->__('(electronic transmission)')) ?> <strong><?php echo $this->escapeHtml($this->__('and confirm that the given bank details are correct!')) ?></strong></strong></a>
+            <div class="resp-accordion" id="sepa_mandate_details" style="display:none; padding:5px; border: 1px solid; border-color: #ddd;">
+              <?php echo $this->escapeHtml($this->__('I authorise (A) Novalnet AG to send instructions to my bank to debit my account and (B) my bank to debit my account in accordance with the instructions from Novalnet AG.')) ?>
+              <br>
+              <br>
+              <strong><?php echo $this->escapeHtml($this->__('Creditor identifier: DE53ZZZ00000004253')) ?></strong>
+              <br>
+              <br>
+              <strong><?php echo $this->escapeHtml($this->__('Note:')) ?></strong> <?php echo $this->escapeHtml($this->__('You are entitled to a refund from your bank under the terms and conditions of your agreement with bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.')) ?>
+            </div>
+        </li>
+        <?php if ($this->getOneClickShopping()): ?>
+            <input type="checkbox" id="nn_sepa_save_account" name="nn_sepa_save_account" value="" />
+            <?php echo $this->escapeHtml($this->__('I want to save my account details for later purchases')); ?>
+        <?php Endif; ?>
+    </div>
+    <!-- Direct Debit SEPA local form -->
+    <!-- DOB for Direct Debit SEPA payment guarantee -->
+    <?php if ($helper->getMethodSession($code)->getPaymentGuaranteeFlag() && !$company): ?>
+        <div id="sepa_guarantee">
+            <li>
+                <label for="<?php echo $this->escapeHtml($code); ?>_dob" class="required">
+                    <em>*</em><?php echo $this->escapeHtml($this->__('Date Of Birth')); ?>
+                </label>
+                <div class="input-box">
+                    <input type="text"
+                           autocomplete="off"
+                           id="<?php echo $this->escapeHtml($code); ?>_dob"
+                           name="payment[dob_date]"
+                           maxlength="2"
+                           title="<?php echo $this->escapeHtml($this->__('DATE')); ?>"
+                           class="input-text required-entry validate-novalnet-date"
+                           value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                           placeholder="<?php echo $this->escapeHtml($this->__('DD')); ?>"/>
+                    <input type="text"
+                           autocomplete="off"
+                           id="<?php echo $this->escapeHtml($code); ?>_dob"
+                           name="payment[dob_month]"
+                           maxlength="2"
+                           title="<?php echo $this->escapeHtml($this->__('MONTH')); ?>"
+                           class="input-text required-entry validate-novalnet-month"
+                           value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                           placeholder="<?php echo $this->escapeHtml($this->__('MM')); ?>"/>
+                    <span class="autocomplete">
+                        <input type="text"
+                               autocomplete="off"
+                               id="<?php echo $this->escapeHtml($code); ?>_dob"
+                               name="payment[dob_year]"
+                               maxlength="4"
+                               onkeypress="autoCompleteYear(this)"
+                               title="<?php echo $this->escapeHtml($this->__('YEAR')); ?>"
+                               class="input-text required-entry validate-novalnet-year minimum-length-4 validate-length"
+                               value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                               placeholder="<?php echo $this->escapeHtml($this->__('YYYY')); ?>"/>
+                     </span>
+                     <div class="validation-advice" id="advice-required-entry-<?php echo $this->escapeHtml($code); ?>_dob"></div>
+                     <div class="validation-advice" id="advice-validate-length-<?php echo $this->escapeHtml($code); ?>_dob"></div>
+                </div>
+            </li>
+        </div>
+    <?php endif ?>
+    <!-- DOB for Direct Debit SEPA payment guarantee -->
+    <!-- Form hidden elements -->
+    <input id="nnSepa_oneclick_shopping"
+           name="nnSepa_oneclick_shopping"
+           type="hidden"
+           value="<?php echo $this->escapeHtml($oneClickShopping); ?>" />
+    <input id="nnSepa_new_form"
+           name="nnSepa_new_form"
+           type="hidden"
+           value="" />
+    <!-- Form hidden elements -->
+</ul>
+<script type="text/javascript">
+    Translator.add(
+        'Please enter valid birthdate',
+        '<?php echo $this->__('Please enter valid birthdate'); ?>'
+    );
+
+    Translator.add(
+        'Your account details are invalid',
+        '<?php echo $this->__('Your account details are invalid') . '!'; ?>'
+    );
+</script>

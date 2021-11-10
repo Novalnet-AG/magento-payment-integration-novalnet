@@ -1,0 +1,159 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$info = $this->getInfo();
+$helper = Mage::helper('novalnet_payment');
+$currentUrl = Mage::helper('core/url')->getCurrentUrl();
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $info->getLastTransId();
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
+$currentTime = $this->getAdditionalData('voidCreateAt');
+$transactionStatus = $helper->getModel('Mysql4_TransactionStatus')->loadByAttribute('transaction_no', $transactionId);
+$paymentStatus = $transactionStatus->getTransactionStatus(); // Get payment original transaction status
+?>
+<?php if ($info): ?>
+<?php if ($this->getAdditionalData('NnTestOrder')): ?>
+    <?php echo $this->__('Testorder'); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?>{{pdf_row_separator}}
+<?php if ($transactionId): ?>
+    <?php echo $this->escapeHtml($this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId))) ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('NnGuarantee') && $paymentStatus != 75): ?>
+    <?php echo $this->escapeHtml($this->__('This is processed as a guarantee payment')); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($paymentStatus == 75): ?>
+    <?php echo $this->escapeHtml($this->__('Your order is under verification and once confirmed, we will send you our bank details to where the order amount should be transferred. Please note that this may take upto 24 hours.')); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($nextCycleDate): ?>
+    <?php echo $this->escapeHtml($this->__('Next Payment Date is: %s', $nextCycleDate)); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('voidTid')): ?>
+    <?php echo $this->escapeHtml($this->__('The transaction has been canceled on %s', $currentTime)) ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('subsCancelReason')): ?>
+    <?php echo $this->escapeHtml(
+        $this->__('Subscription Cancellation: %s', $this->getAdditionalData('subsCancelReason'))
+    ); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('captureTid')): ?>
+    <?php echo $this->escapeHtml(
+        $this->__('The transaction has been confirmed successfully for the TID: %s and the due date updated as %s',
+            $helper->makeValidNumber($transactionId),
+            $this->getAdditionalData('NnDueDate')
+        )
+    ); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('dueDateUpdateAt')): ?>
+    <?php
+    echo $this->escapeHtml(
+        $this->__('The transaction has been updated with  due date %s', $this->getAdditionalData('NnDueDate'))
+    )
+    ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('refunded_tid')): ?>
+<?php foreach ($this->getAdditionalData('refunded_tid') as $key => $value): ?>
+	<?php if (!$this->getAdditionalData('NnGuarantee')): ?>
+        <?php
+            echo $this->escapeHtml(
+                $this->__(
+                    'Refund has been initiated for the TID: %s with the amount of %s',
+                    $helper->makeValidNumber($value['reqtid']), $value['refamount']
+                )
+            );
+        ?>{{pdf_row_separator}}
+    <?php else: ?>
+        <?php
+           echo $this->escapeHtml(
+		$this->__(
+			'Refund has been initiated for the TID: %s with the amount %s. New TID: %s for the refunded amount %s',
+			$helper->makeValidNumber($value['reqtid']), $value['refamount'],
+			$helper->makeValidNumber($value['reftid']), $value['refamount']
+		)
+	);
+        ?>{{pdf_row_separator}}
+    <?php endif; ?>
+<?php endforeach;?>
+<?php endif; ?>
+<?php if (!preg_match("/creditmemo/i", $currentUrl) && $paymentStatus != 75): ?>
+    <?php $nnNoteLength = strlen($this->getAdditionalData('NnNote'));?>
+    <?php if ($nnNoteLength): ?>
+        <?php if (strstr($this->getAdditionalData('NnNote'), 'br')): ?>{{pdf_row_separator}}
+            <?php echo $this->escapeHtml($this->getAdditionalData('NnNote')); ?>
+        <?php else: ?>
+            <?php 
+                $note = explode('|', $this->getAdditionalData('NnNote'));
+                $dueDate = substr($note[0],9);
+                $formattedDueDate = Mage::helper('core')->formatDate($dueDate, 'medium', false);
+                $orderFullAmount = substr($this->getAdditionalData('NnNoteAmount'),11);
+             ?>
+            <?php if ($paymentStatus != 91): ?>
+                <?php echo $this->escapeHtml(
+                    $this->__(
+                    'Please transfer the amount of %s to the following account on or before %s',
+                    $orderFullAmount,
+                    $formattedDueDate
+                    )
+                ); ?>
+            <?php else: ?>
+                <?php echo $this->escapeHtml(
+                    $this->__(
+                    'Please transfer the amount of %s to the following account',
+                    $orderFullAmount
+                    )
+                ); ?>
+            <?php endif; ?>
+            <?php foreach ($note as $noteValue): ?>
+                <?php list($text, $value) = explode(':', $noteValue); ?>
+                <?php if (!empty($value) && $value != ' ' && $text != 'Due Date'): ?>
+                    {{pdf_row_separator}}<?php echo $this->escapeHtml($this->__($text) . ': ' . $value); ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php $nnNoteTidLength = strlen($this->getAdditionalData('NnNoteTID')); ?>
+    <?php if ($nnNoteTidLength): ?>
+        <?php if (strstr($this->getAdditionalData('NnNoteTID'), 'br')): ?>{{pdf_row_separator}}
+            <?php echo $this->escapeHtml($this->getAdditionalData('NnNoteTID')); ?>
+        <?php else: ?>
+            <?php $note = explode('|', $this->getAdditionalData('NnNoteTID')); ?>{{pdf_row_separator}}
+            <?php foreach ($note as $noteValue): ?>
+                <?php list($text, $value) = explode(':', $noteValue); ?>
+                <?php if (preg_match("/Order No&/i", $value)): ?>
+                    <?php list($referenceTxt, $value) = explode('&', $value); ?>
+                    <?php str_replace('&', '', $referenceTxt); ?>{{pdf_row_separator}}
+                    <?php echo $this->escapeHtml(
+                        $this->__($text) . ': ' . $this->__($referenceTxt) . ' ' . $value
+                    ); ?>
+                <?php else: ?>
+                    <?php if ($text == 'NN_Reference_desc1' || $text == 'NN_Reference_desc2'): ?>
+                        {{pdf_row_separator}}<?php echo $this->escapeHtml($this->__($text)); ?>
+                    <?php else: ?>
+                        {{pdf_row_separator}}<?php echo $this->escapeHtml($this->__($text) . ': ' . $value); ?>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    <?php endif; ?>
+    <?php $nnCommentsLength = strlen($this->getAdditionalData('NnComments')); ?>
+    <?php if ($nnCommentsLength): ?>
+        {{pdf_row_separator}}<?php echo $this->getAdditionalData('NnComments'); ?>
+    <?php endif; ?>
+<?php endif; ?>
+<?php else: ?>
+    <?php echo $this->escapeHtml($this->__('Error in getting payment method')) ?>
+<?php endif; ?>

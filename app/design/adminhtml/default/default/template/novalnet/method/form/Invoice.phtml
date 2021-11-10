@@ -1,0 +1,117 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$customerSession = $helper->getAdminCheckoutSession();
+$dateOfBirth = ($customerSession->getCustomer()->hasDob() ? $customerSession->getCustomer()->getDob() : '');
+$dateOfBirth = $dateOfBirth ? Mage::getSingleton('core/date')->gmtDate('Y-m-d', $dateOfBirth) : '';
+$company = $helper->getEndUserCompany();
+?>
+<ul class="form-list" id="payment_form_<?php echo $this->escapeHtml($code) ?>" style="display:none;">
+    <!-- Payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>
+                <?php
+                    $imgpath = $helper->getPaymentLogoUrl() . "invoice.png";
+                    if ($this->getMethod()->getConfigData('logo')):
+                        $imgpath = $helper->getCustomPaymentLogoUrl() . $this->getMethod()->getConfigData('logo');
+                    endif;
+                ?>
+                <img class="nn-logo-img"
+                     src="<?php echo $this->escapeHtml($imgpath) ?>"
+                     alt="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')) ?>"
+                     title="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')) ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Payment logo -->
+    <!-- Payment description -->
+    <li>
+        <?php echo $this->escapeHtml($this->__('Invoice/Prepayment payment description')) ?>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->escapeHtml($this->getUserInfo()) ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == FALSE): ?>
+        <li>
+            <div class="nn-mode">
+                <?php
+                echo $this->escapeHtml(
+                    $this->__('Please Note: This transaction will run on TEST MODE and the amount will not be charged')
+                )
+                ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- Display the payment mode notification -->
+
+    <!-- DOB for invoice payment guarantee -->
+    <?php if ($helper->getMethodSession($code)->getPaymentGuaranteeFlag() && !$company): ?>
+        <li>
+            <label for="<?php echo $this->escapeHtml($code) ?>_dob">
+                <?php echo $this->escapeHtml($this->__('Date Of Birth')) ?><span class="required"> *</span>
+            </label><br/>
+            <div class="input-box">
+                <input type="text"
+                       autocomplete="off"
+                       maxlength="2"
+                       id="<?php echo $this->escapeHtml($code); ?>_dob"
+                       name="payment[dob_date]"
+                       title="<?php echo $this->escapeHtml($this->__('DATE')); ?>"
+                       class="input-text required-entry validate-novalnet-date"
+                       value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                       placeholder="<?php echo $this->escapeHtml($this->__('DD')); ?>"/>
+                <input type="text"
+                       autocomplete="off"
+                       maxlength="2"
+                       id="<?php echo $this->escapeHtml($code); ?>_dob"
+                       name="payment[dob_month]"
+                       title="<?php echo $this->escapeHtml($this->__('MONTH')); ?>"
+                       class="input-text required-entry validate-novalnet-month"
+                       value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                       placeholder="<?php echo $this->escapeHtml($this->__('MM')); ?>"/>
+                <span class="autocomplete">
+                    <input type="text"
+                           autocomplete="off"
+                           id="<?php echo $this->escapeHtml($code); ?>_dob"
+                           maxlength="4"
+                           name="payment[dob_year]"
+                           onkeypress="autoCompleteYear(this)"
+                           title="<?php echo $this->escapeHtml($this->__('YEAR')); ?>"
+                           class="input-text required-entry validate-novalnet-year autocomplete minimum-length-4"
+                           value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                           placeholder="<?php echo $this->escapeHtml($this->__('YYYY')); ?>"/>
+                </span>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- DOB for invoice payment guarantee -->
+</ul>
+<script type="text/javascript">
+    Translator.add(
+        'Please enter valid birthdate',
+        '<?php echo $this->__('Please enter valid birthdate'); ?>'
+    );
+</script>

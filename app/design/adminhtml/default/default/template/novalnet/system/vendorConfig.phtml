@@ -1,0 +1,33 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+?>
+<style>
+    #novalnet_global_novalnet_public_key{
+        width:69%;
+        margin-right: 5px;
+    }
+</style>
+
+<div class="vendor-config-save">
+    <input type="text" id="novalnet_global_novalnet_public_key"
+                       name="<?php echo $this->getElement()->getName(); ?>"
+                       value="<?php echo $this->getElementValue(); ?>"/>
+    <button type="button" class="button action-configure" id="nn-save-vendor-config">
+        <?php echo $this->escapeHtml(Mage::helper('novalnet_payment')->__('Activate')) ?></button>
+</div>

@@ -1,0 +1,182 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$order = $this->getOrder();
+$customerUrl = $this->getCustomerViewUrl();
+$currencyInterface = Mage::helper('core');
+$helper = Mage::helper('novalnet_payment');
+?>
+
+<div id="sales_order_view_tabs_order_info_content" >
+    <div>
+        <div class="box-left">
+        <!--Customer Information-->
+            <div class="entry-edit">
+                        <div class="entry-edit-head">
+                            <h4 class="icon-head head-account"><?php echo $this->escapeHtml($helper->__('Customer details')) ?></h4>
+                        </div>
+                <div class="fieldset">
+                    <table cellspacing="0" class="form-list">
+                        <tbody>
+                            <tr>
+                                <td class="label">
+                                    <label><?php echo $this->escapeHtml($helper->__('Customer Name')) ?></label>
+                                </td>
+                                <td class="value">
+                                    <a href="<?= $this->escapeUrl($customerUrl) ?>" target="_blank">
+                                        <strong><?php echo $this->escapeHtml($order->getCustomerName()) ?></strong>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    <label><?php echo $this->escapeHtml($helper->__('Email')) ?></label>
+                                </td>
+                                <td class="value">
+                                    <a href="mailto:<?php echo $this->escapeHtml($order->getCustomerEmail()) ?>">
+                                        <strong><?php echo $this->escapeHtml($order->getCustomerEmail()) ?></strong>
+                                    </a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">
+                                    <label><?php echo $this->escapeHtml($helper->__('Purchased From')) ?></label>
+                                </td>
+                                <td class="value">
+                                    <strong><?= $this->escapeHtml($this->getOrderStoreName(), array('br')) ?></strong>
+                                </td>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="box-right">
+            <!--Instalment Information-->
+            <div class="entry-edit">
+                <div class="entry-edit-head">
+                    <h4 class="icon-head head-account"><?= $this->escapeHtml(__('Instalment Information')) ?></h4>
+                </div>
+                <div class="fieldset">
+                    <div class="hor-scroll">
+                        <table cellspacing="0" class="form-list">
+                            <tbody>
+                                <tr>
+                                    <td class="label"><?php echo __('Total paid amount') ?></td>
+                                    <td class="value">
+                                        <b><?php echo $currencyInterface->currency($this->getAdditionalData('InstallPaidAmount'), true, false);  ?></b>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="label"><?php echo __('Instalment Cycle Amount') ?></td>
+                                    <td class="value"><b><?php echo $this->getAdditionalData('InstallCycleAmount') ? $currencyInterface->currency($this->getAdditionalData('InstallCycleAmount')) : '-' ?></b></td>
+                                </tr>
+                                <tr>
+                                    <td class="label"><?php echo __('Paid Instalments') ?></td>
+                                    <td class="value"><b><?php echo $this->getAdditionalData('PaidInstall') ?></b></td>
+                                </tr>
+                                <tr>
+                                    <td class="label"><?php echo __('Due Instalments') ?></td>
+                                    <td class="value"><b><?php echo $this->getAdditionalData('DueInstall') ? $this->getAdditionalData('DueInstall') : 0?></b></td>
+                                </tr>
+                                <tr>
+                                    <td class="label"><?php echo __('Next Instalment Date') ?></td>
+                                    <td class="value"><b><?php echo $this->getAdditionalData('NextCycle') ? Mage::helper('core')->formatDate($this->getAdditionalData('NextCycle')) : '-' ?></b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="clear"></div>
+<div class="entry-edit">
+    <div class="entry-edit-head">
+        <h4 class="icon-head head-products"><?= $this->escapeHtml(__('Instalment Summary')) ?></h4>
+    </div>
+</div>
+
+<div class="grid np">
+    <div class="hor-scroll">
+        <table cellspacing="0" class="data order-tables">
+            <thead>
+                <tr class="headings">
+                    <th><?php echo __('S.No') ?></th>
+                    <th><span class="nobr"><?php echo __('Amount') ?></span></th>
+                    <th><span class="nobr"><?php echo __('Paid Date') ?></span></th>
+                    <th><span class="nobr"><?php echo __('Next Instalment Date') ?></th>
+                    <th><span class="nobr"><?php echo __('Status') ?></span></th>
+                    <th class="last"><span class="nobr"><?php echo __('Reference') ?></span></th>
+                </tr>
+            </thead>
+            <tbody class="even">
+                <?php foreach($this->getAdditionalData('InstalmentDetails') as $key => $value): ?>
+                    <tr class="border">
+                        <td><?php echo $key ?></td>
+                        <td>
+                            <div id="nn-amount-<?php echo $key ?>">
+                                <?php echo $currencyInterface->currency($value['amount'], true, false) ?>
+                                <?php if (!empty($value['reference'])): ?>
+                                    <a id="nn-refund-<?php echo $key ?>"><?php echo __('Refund') ?></a>
+                                <?php endif; ?>
+                            </div>
+                            <div id="nn-refund-details-<?php echo $key ?>" style="display: none">
+                            <p><?php echo __('Please enter the refund amount') ?></p>
+                            <form method="get" id="refund-form" action="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/novalnetpayment_sales_refund', array('order_id' => $this->getOrder()->getId())) ?>">
+                                <input type="text" class="required-entry validate-zero-or-greater validate-number input-text required-entry" name="nn-refund-amount" value ="<?php echo round($value['amount'], 2) * 100 ?>" style="width:110px !important;">
+                                <input type="hidden" class="admin__control-text" name="nn-refund-key" value="<?php echo $key ?>">
+                                <input type="hidden" class="admin__control-text" name="nn-refund-tid" value="<?php echo $value['reference'] ?>">
+                            	<p><i><?php echo __('(in minimum unit of currency. E.g. enter 100 which is equal to 1.00)') ?></i></p>
+                                <input type="submit" value="<?php echo __('Refund') ?>">
+                                <input type="button" value="<?php echo __('Cancel') ?>" id="nn-cancel-<?php echo $key ?>">
+                            </form>
+                            <script type="text/javascript">
+                                jQuery(document).ready(function($) {
+                                    var key = "<?php echo $key; ?>";
+                                    $('#nn-refund-'+key).click(function(){
+                                        $('#nn-refund-details-' + key).attr("style", "display:block");
+                                        $('#nn-amount-' + key).attr("style", "display:none");
+                                    });
+                                    $('#nn-cancel-' + key).click(function(){
+                                        $('#nn-refund-details-' + key).attr("style", "display:none");
+                                        $('#nn-amount-' + key).removeAttr("style");
+                                    });
+                                });
+                            </script>
+                            </div>
+                        </td>
+                        <td><?php echo !empty($value['paidDate']) ? Mage::helper('core')->formatDate($value['paidDate']) : '-' ?></td>
+                        <td><?php echo !empty($value['nextCycle']) ? Mage::helper('core')->formatDate($value['nextCycle']) : '-' ?></td>
+                        <?php if($value['status'] == 'Paid'): ?>
+                            <td><p style="color: green"><b><?php echo __($value['status']) ?></b></p></td>
+                        <?php else: ?>
+                            <td><p style="color: #eb5202"><b><?php echo __($value['status']) ?></b></p></td>
+                        <?php endif; ?>
+                        <td class="last"><?php echo !empty($value['reference']) ? $value['reference'] : '-' ?></td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript">
+	var validator = new Validation('refund-form', {immediate : true});
+	validator.validate();
+</script>

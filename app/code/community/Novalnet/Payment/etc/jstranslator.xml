@@ -1,0 +1,39 @@
+<!--
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+-->
+<jstranslator>
+    <activate_success_msg_one translate="message" module="core">
+        <message>Your Novalnet Merchant details are now updated. Click the</message>
+    </activate_success_msg_one>
+    <activate_success_msg_two translate="message" module="core">
+        <message>button to complete the configuration &amp; save all changes!</message>
+    </activate_success_msg_two>
+    <instalment_number_text translate="message" module="core">
+        <message>Instalment number</message>
+    </instalment_number_text>
+    <instalment_payment_date_text translate="message" module="core">
+        <message>Instalment payment date</message>
+    </instalment_payment_date_text>
+    <monthly_instalment_amount_text translate="message" module="core">
+        <message>Monthly instalment amount</message>
+    </monthly_instalment_amount_text>
+    <instalment_text translate="message" module="core">
+        <message>Instalment</message>
+    </instalment_text>
+</jstranslator>

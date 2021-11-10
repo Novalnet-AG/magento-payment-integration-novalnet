@@ -1,0 +1,43 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$orderId = $this->getOrderId();
+$cpCheckoutToken = '';
+if ($orderId) {
+    $order = Mage::getModel('sales/order')->loadByIncrementId($orderId);
+    $payment = $order->getPayment();
+    $paymentCode = $payment->getMethodInstance()->getCode();
+    if ($paymentCode == 'novalnetCashpayment') {
+        $data = unserialize($order->getPayment()->getAdditionalData());
+        $cpCheckoutToken = !empty($data['cpCheckoutToken']) ? $data['cpCheckoutToken'] : '';
+        $checkoutUrl = !empty($data['NnTestOrder'])
+            ? 'https://cdn.barzahlen.de/js/v2/checkout-sandbox.js' : 'https://cdn.barzahlen.de/js/v2/checkout.js';
+    }
+}
+?>
+
+<?php if ($cpCheckoutToken): ?>
+    <style type="text/css">
+        #bz-checkout-modal { position: fixed !important; }
+    </style>
+    <script src="<?php echo $checkoutUrl ?>"
+            class="bz-checkout"
+            data-token="<?php echo $cpCheckoutToken ?>">
+    </script>
+    <a href="javascript:bzCheckout.display();"><?php echo $this->__('Pay now with Barzahlen'); ?></a>
+<?php endif;?>

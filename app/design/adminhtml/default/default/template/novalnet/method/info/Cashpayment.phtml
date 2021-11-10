@@ -1,0 +1,77 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$info = $this->getInfo();
+$helper = Mage::helper('novalnet_payment');
+$currentUrl = Mage::helper('core/url')->getCurrentUrl();
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $info->getLastTransId();
+?>
+<?php if ($info): ?>
+<?php if ($this->getAdditionalData('NnTestOrder')): ?>
+    <div style="color:white;font-weight:bold;background:red;padding:5px 10px;text-align:center;font-size:15px">
+        <?php echo $this->__('Testorder'); ?>
+    </div>
+<?php endif; ?>
+<?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?><br />
+<?php if ($transactionId): ?>
+    <?php echo $this->escapeHtml($this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId))) ?><br /><br />
+<?php endif; ?>
+<?php if ($this->getAdditionalData('CpDueDate')): ?>
+    <?php echo $this->escapeHtml($this->__('Slip expiry date: %s', $this->getAdditionalData('CpDueDate'))) ?><br /><br />
+<?php endif; ?>
+<?php if ($this->getAdditionalData('dueDateUpdateAt')): ?>
+    <?php
+    echo $this->escapeHtml(
+        $this->__('The transaction has been updated with slip expiry date %s', $this->getAdditionalData('CpDueDate'))
+    )
+    ?><br /><br />
+<?php endif; ?>
+<?php if (!preg_match("/invoice|creditmemo|shipment/i", $currentUrl)): ?>
+    <?php if ($this->getAdditionalData('CashpaymentStores')): ?>
+        <b><?php echo $this->__('Store(s) near you:'); ?><br /><br /></b>
+        <table>
+        <?php foreach ($this->getAdditionalData('CashpaymentStores') as $key => $value): ?>
+        <tr>
+            <th><?php echo $this->escapeHtml($value['title']) ?><br /></th>
+            <td>
+            <?php echo $this->escapeHtml($value['street']) ?><br />
+            <?php echo $this->escapeHtml($value['city']) ?><br />
+            <?php echo $this->escapeHtml($value['country']) ?><br />
+            <?php echo $this->escapeHtml($value['zipcode']) ?><br /><br />
+            </td>
+        </tr>
+        <?php endforeach;?>
+        </table>
+    <?php endif; ?>
+<?php endif; ?>
+<?php if ($this->getAdditionalData('refunded_tid')): ?>
+<?php foreach ($this->getAdditionalData('refunded_tid') as $key => $value): ?>
+	<?php
+		echo $this->escapeHtml(
+			$this->__(
+				'Refund has been initiated for the TID: %s with the amount of %s',
+				$helper->makeValidNumber($value['reqtid']), $value['refamount']
+			)
+		);
+	?><br /><br />
+<?php endforeach;?>
+<?php endif; ?>
+<?php if ($this->getAdditionalData('NnComments')): ?>
+    <?php echo $this->getAdditionalData('NnComments'); ?>
+<?php endif; ?>
+<?php endif; ?>

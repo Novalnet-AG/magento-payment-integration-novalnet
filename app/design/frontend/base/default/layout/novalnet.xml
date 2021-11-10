@@ -1,0 +1,96 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+-->
+<layout version="0.1.0">
+    <novalnet_payment_callback_index>
+        <reference name="root">
+            <remove name="global_notices"/>
+            <remove name="header"/>
+            <remove name="right"/>
+            <remove name="left"/>
+            <remove name="footer"/>
+        </reference>
+    </novalnet_payment_callback_index>
+    <checkout_onepage_index>
+        <reference name="head">
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/novalnet/novalnet.css</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/cc.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/sepa.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/paypal.js</name>
+            </action>
+        </reference>
+    </checkout_onepage_index>
+    <checkout_onestep_index>
+        <reference name="head">
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/novalnet/novalnet.css</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/cc.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/sepa.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/paypal.js</name>
+            </action>
+        </reference>
+    </checkout_onestep_index>
+    <onestepcheckout_index_index>
+        <reference name="head">
+            <action method="addItem">
+                <type>skin_css</type>
+                <name>css/novalnet/novalnet.css</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/cc.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/sepa.js</name>
+            </action>
+            <action method="addItem">
+                <type>js</type>
+                <name>novalnet/paypal.js</name>
+            </action>
+        </reference>
+    </onestepcheckout_index_index>
+    <checkout_onepage_success>
+        <reference name="content">
+            <block type="checkout/onepage_success" name="success_page" template="novalnet/method/info/CashpaymentSuccess.phtml" />
+        </reference>
+    </checkout_onepage_success>
+</layout>

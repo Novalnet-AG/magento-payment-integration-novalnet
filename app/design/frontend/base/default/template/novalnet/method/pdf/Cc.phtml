@@ -1,0 +1,65 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$info = $this->getInfo();
+$helper = Mage::helper('novalnet_payment');
+$transactionId = $this->getAdditionalData('NnTid') ? $this->getAdditionalData('NnTid') : $info->getLastTransId();
+$nextCycleDate = $this->getAdditionalData('paidUntil') ? $this->getAdditionalData('paidUntil') : '';
+$currentTime = $this->getAdditionalData('voidCreateAt');
+?>
+<?php if ($info): ?>
+<?php if ($this->getAdditionalData('NnTestOrder')): ?>
+    <?php echo $this->__('Testorder'); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php echo $this->escapeHtml($this->getMethod()->getTitle()) ?>{{pdf_row_separator}}
+<?php if ($transactionId): ?>
+    <?php echo $this->escapeHtml($this->__('Novalnet Transaction ID: %s', $helper->makeValidNumber($transactionId))) ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($nextCycleDate): ?>
+    <?php echo $this->escapeHtml($this->__('Next Payment Date is: %s', $nextCycleDate)); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('voidTid')): ?>
+    <?php echo $this->escapeHtml($this->__('The transaction has been canceled on %s', $currentTime)) ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('subsCancelReason')): ?>
+    <?php echo $this->escapeHtml(
+        $this->__('Subscription Cancellation: %s', $this->getAdditionalData('subsCancelReason'))
+    ); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('captureTid')): ?>
+    <?php echo $this->escapeHtml(
+        $this->__('The transaction has been confirmed on %s', $this->getAdditionalData('captureCreateAt'))
+    ); ?>{{pdf_row_separator}}
+<?php endif; ?>
+<?php if ($this->getAdditionalData('refunded_tid')): ?>
+<?php foreach ($this->getAdditionalData('refunded_tid') as $key => $value): ?>
+	<?php
+		echo $this->escapeHtml(
+			$this->__(
+				'Refund has been initiated for the TID: %s with the amount %s. New TID: %s for the refunded amount %s',
+				$helper->makeValidNumber($value['reqtid']), $value['refamount'],
+				$helper->makeValidNumber($value['reftid']), $value['refamount']
+			)
+		);
+	?>{{pdf_row_separator}}
+<?php endforeach;?>
+<?php endif; ?>
+<?php if ($this->getAdditionalData('NnComments')): ?>
+    <?php echo $this->getAdditionalData('NnComments'); ?>
+<?php endif; ?>
+<?php endif; ?>

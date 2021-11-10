@@ -1,0 +1,227 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+?>
+<?php /** @var $this Mage_Adminhtml_Block_Sales_Order_View_Tab_Info */ ?>
+<?php $_order = $this->getOrder() ?>
+<?php
+$payment = $_order->getPayment();
+$paymentName = $payment->getMethodInstance()->getCode();
+if (preg_match("/novalnet/i", $paymentName)) {
+    $helper = Mage::helper('novalnet_payment'); // Novalnet payment helper
+    $additionalData = unserialize($payment->getAdditionalData());
+    $transactionId = !empty($additionalData['NnTid']) ? $helper->makeValidNumber($additionalData['NnTid']) : '';
+    if (!empty($transactionId)) {
+        // Get current transaction status information
+        $transactionStatus = $helper->getModel('Mysql4_TransactionStatus')
+            ->loadByAttribute('transaction_no', $transactionId);
+        $paymentStatus = $transactionStatus->getTransactionStatus(); // Get payment original transaction status
+    }
+    $invoice = $_order->getInvoiceCollection()->getFirstItem();
+    $paid = $invoice->getState();
+}
+?>
+<div>
+    <div id="order-messages">
+        <?php echo $this->getChildHtml('order_messages') ?>
+    </div>
+    <?php echo $this->getChildHtml('order_info') ?>
+    <input type="hidden" name="order_id" value="<?php echo $_order->getId() ?>"/>
+    <?php if ($_order->getIsVirtual()): ?>
+    <div class="box-right">
+    <?php else: ?>
+    <div class="box-left">
+    <?php endif; ?>
+        <!--Payment Method-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-payment-method"><?php echo Mage::helper('sales')->__('Payment Information') ?></h4>
+            </div>
+            <fieldset>
+                <?php echo $this->getPaymentHtml() ?>
+                <div><?php echo Mage::helper('sales')->__('Order was placed using %s', $_order->getOrderCurrencyCode()) ?></div>
+            </fieldset>
+        </div>
+        <?php
+            $invoicePayment = array(Novalnet_Payment_Model_Config::NN_INVOICE,
+                                    Novalnet_Payment_Model_Config::NN_PREPAYMENT,
+                                    Novalnet_Payment_Model_Config::NN_CASHPAYMENT);
+
+        ?>
+        <?php if (in_array($paymentName, $invoicePayment)
+                 && isset($paymentStatus) && $paymentStatus == Novalnet_Payment_Model_Config::RESPONSE_CODE_APPROVED
+                 && ($paid == 1 || !$paid)): ?>
+            <?php
+                $dueDate = !empty($additionalData['NnDueDate'])
+                    ? $additionalData['NnDueDate'] : $additionalData['CpDueDate'];
+                $dueDate = Mage::getSingleton('core/date')->date('Y-m-d', $dueDate);
+            ?>
+            <div class="entry-edit">
+                <div class="entry-edit-head">
+                    <h4 class="icon-head head-products">
+                        <?php if ($paymentName == Novalnet_Payment_Model_Config::NN_CASHPAYMENT): ?>
+                            <?php echo $this->__('Change the slip expiry date') ?>
+                        <?php else: ?>
+                            <?php echo $this->__('Change the due date') ?>
+                        <?php endif; ?>
+                        <?php ?>
+                    </h4>
+                </div>
+                <fieldset>
+                    <table>
+                        <tr>
+                            <td>
+                                <?php if ($paymentName == Novalnet_Payment_Model_Config::NN_CASHPAYMENT): ?>
+                                    <?php echo $this->__('Slip expiry date') ?>:
+                                <?php else: ?>
+                                    <?php echo $this->__('Transaction due date') ?>:
+                                <?php endif; ?>
+                            </td>
+                            <td><input class="validate-date" type="text" id="invoice_duedate" name="invoice_duedate" value="<?php echo $dueDate; ?>" style="width:6em" readonly /></td>
+                        </tr>
+                        <tr>
+                            <td colspan=2>
+                                <button type="button" title="<?php echo $this->__('Amount Changed button') ?>" class="button" onclick="duedate_changed('<?php
+                            echo Mage::helper('adminhtml')->getUrl('*/novalnetpayment_sales_order/duedateupdate', array(
+                                'order_id' => $_order->getId()))
+                            ?>', '<?php echo $this->__('Enter the valid due date'); ?>');"><span><?php echo $this->__('Update') ?></span></button></td>
+                        </tr>
+                    </table>
+                </fieldset>
+            </div>
+        <?php endif; ?>
+    </div>
+    <?php if (!$_order->getIsVirtual()): ?>
+    <div class="box-right">
+        <!--Shipping Method-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-shipping-method"><?php echo Mage::helper('sales')->__('Shipping &amp; Handling Information') ?></h4>
+            </div>
+            <fieldset>
+                <?php  if ($_order->getTracksCollection()->count()) : ?>
+                <a href="#" id="linkId" onclick="popWin('<?php echo $this->helper('shipping')->getTrackingPopupUrlBySalesModel($_order) ?>','trackorder','width=800,height=600,resizable=yes,scrollbars=yes')" title="<?php echo $this->quoteEscape($this->__('Track Order')) ?>"><?php echo $this->__('Track Order') ?></a>
+                <br/>
+                <?php endif; ?>
+                <?php if ($_order->getShippingDescription()): ?>
+                    <strong><?php echo $this->escapeHtml($_order->getShippingDescription()) ?></strong>
+
+                    <?php if ($this->helper('tax')->displayShippingPriceIncludingTax()): ?>
+                        <?php $_excl = $this->displayShippingPriceInclTax($_order); ?>
+                    <?php else: ?>
+                        <?php $_excl = $this->displayPriceAttribute('shipping_amount', false, ' '); ?>
+                    <?php endif; ?>
+                    <?php $_incl = $this->displayShippingPriceInclTax($_order); ?>
+
+                    <?php echo $_excl; ?>
+                    <?php if ($this->helper('tax')->displayShippingBothPrices() && $_incl != $_excl): ?>
+                        (<?php echo $this->__('Incl. Tax'); ?> <?php echo $_incl; ?>)
+                    <?php endif; ?>
+                <?php else: ?>
+                    <?php echo $this->helper('sales')->__('No shipping information available'); ?>
+                <?php endif; ?>
+            </fieldset>
+        </div>
+    </div>
+    <?php endif; ?>
+    <div class="clear"></div>
+    <?php echo $this->getGiftOptionsHtml() ?>
+    <div class="clear"></div>
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-products"><?php echo Mage::helper('sales')->__('Items Ordered') ?></h4>
+        </div>
+    </div>
+    <?php echo $this->getItemsHtml() ?>
+    <div class="clear"></div>
+
+    <div class="box-left">
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4><?php echo Mage::helper('sales')->__('Comments History') ?></h4>
+            </div>
+            <fieldset><?php echo $this->getChildHtml('order_history') ?></fieldset>
+        </div>
+    </div>
+    <div class="box-right entry-edit">
+        <div class="entry-edit-head"><h4><?php echo Mage::helper('sales')->__('Order Totals') ?></h4></div>
+        <div class="order-totals"><?php echo $this->getChildHtml('order_totals') ?></div>
+    </div>
+    <div class="clear"></div>
+</div>
+
+<?php echo $this->getChildHtml('popup_window');?>
+<script type="text/javascript">
+//<![CDATA[
+    /**
+     * Retrieve gift options tooltip content
+     */
+    function getGiftOptionsTooltipContent(itemId) {
+        var contentLines = [];
+        var headerLine = null;
+        var contentLine = null;
+
+        $$('#gift_options_data_' + itemId + ' .gift-options-tooltip-content').each(function (element) {
+            if (element.down(0)) {
+                headerLine = element.down(0).innerHTML;
+                contentLine = element.down(0).next().innerHTML;
+                if (contentLine.length > 30) {
+                    contentLine = contentLine.slice(0,30) + '...';
+                }
+                contentLines.push(headerLine + ' ' + contentLine);
+            }
+        });
+        return contentLines.join('<br/>');
+    }
+    giftOptionsTooltip.setTooltipContentLoaderFunction(getGiftOptionsTooltipContent);
+
+    function duedate_changed(url, lang1) {
+        var invoice_duedate = document.getElementById('invoice_duedate').value;
+        invoicedate = invoice_duedate.length;
+        var paymentname = '<?php echo $paymentName; ?>';
+        if (!invoicedate) {
+            alert(lang1);
+            return false;
+        }
+
+        if (paymentname == 'novalnetCashpayment') {
+            var nconfirm = '<?php echo $this->__('Are you sure you want to change the slip expiry date?'); ?>';
+        } else {
+            var nconfirm = '<?php echo $this->__('Are you sure you want to change the order due date?'); ?>';
+        }
+        if (confirm(nconfirm) == true) {
+                window.location.href = url + "invoice_duedate/" + invoice_duedate;
+        } else {
+            return false;
+        }
+    }
+//]]>
+</script>
+<script type="text/javascript">
+// <![CDATA[
+    if (document.getElementById('invoice_duedate') != undefined) {
+        Calendar.setup({
+            inputField: 'invoice_duedate',
+            ifFormat: '%Y-%m-%d',
+            button: 'date_to_trig',
+            align: 'Bl',
+            singleClick: true
+        });
+    }
+// ]]>
+</script>

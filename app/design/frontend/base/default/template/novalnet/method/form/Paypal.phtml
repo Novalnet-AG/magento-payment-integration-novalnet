@@ -1,0 +1,139 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$prevTransInfo = $this->getMethod()->getExistingTransInfo();
+$oneClickShopping = ($this->getMethod()->getConfigData('paypal_shop_type') == 1 && $prevTransInfo) ? 1 : '';
+?>
+<ul class="form-list" id="payment_form_<?php echo $this->escapeHtml($code); ?>" style="display:none;">
+    <!-- Payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>               
+                <?php
+                    $imgpath = $helper->getPaymentLogoUrl() . "paypal.png";
+                    if ($this->getMethod()->getConfigData('logo')):
+                        $imgpath = $helper->getCustomPaymentLogoUrl() . $this->getMethod()->getConfigData('logo');
+                    endif;
+                ?>
+                <img class="nn-logo-img"
+                     src="<?php echo $this->escapeHtml($imgpath); ?>"
+                     alt="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>"
+                     title="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Payment logo -->
+    <!-- Payment description -->
+    <li>
+     <span id ='paypal_title_new_description' style="display:none;">
+         <?php
+             echo $this->escapeHtml($this->__('Paypal payment description'));
+         ?>
+     </span>
+     <span id ='paypal_title_given_description' style="display:none;">
+      <?php
+          echo $this->escapeHtml(
+              $this->__(
+                  'Once the order is submitted, the payment will be processed as a reference transaction at Novalnet'
+              )
+          );
+      ?>
+     </span>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->escapeHtml($this->getUserInfo()); ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == FALSE): ?>
+        <li>
+            <div class="nn-mode">
+                <?php
+                    echo $this->escapeHtml(
+                        $this->__(
+                            'Please Note: This transaction will run on TEST MODE and the amount will not be charged'
+                        )
+                    );
+                ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- Display the payment mode notification -->
+    <!-- PayPal shopping type link -->
+    <div id="paypal_oneclick_link" style="cursor:pointer;display:none;">
+        <ul>
+            <li>
+                <span id ='paypal_title_new' onclick='paypalFormChange("new")' style='color:blue'>
+                    <u><b><?php echo $this->escapeHtml($this->__('Proceed with new PayPal account details')); ?></b></u>
+                </span>
+                <span id ='paypal_title_given' onclick='paypalFormChange("given")' style='color:blue'>
+                    <u><b><?php echo $this->escapeHtml($this->__('Given PayPal account details')); ?></b></u>
+                </span>
+            </li>
+        </ul>
+    </div>
+    <!-- PayPal shopping type link -->
+    <!-- PayPal new form -->
+    <div id="paypal_oneclick_new">
+        <?php if ($this->getMethod()->getConfigData('paypal_shop_type') == 1): ?>
+            <input type="checkbox" id="nn_paypal_save_account" name="nn_paypal_save_account" />
+            <?php echo $this->escapeHtml($this->__('Save my PayPal account details for later purchases')); ?>
+        <?php Endif; ?>
+    </div>
+    <!-- PayPal new form -->
+    <!-- PayPal given form -->
+    <div id="paypal_oneclick_given">
+        <?php if ($oneClickShopping): ?>
+            <ul>
+                <?php if ($prevTransInfo['paypal_tid']): ?>
+                    <li>
+                        <label>
+                            <?php
+                                echo $this->escapeHtml(
+                                    $this->__('PayPal transaction ID: %s', $prevTransInfo['paypal_tid'])
+                                );
+                            ?>
+                        </label>
+                    </li>
+                <?php Endif; ?>
+                <li>
+                    <label>
+                        <?php
+                            echo $this->escapeHtml($this->__('Novalnet Transaction ID: %s', $prevTransInfo['nn_tid']));
+                        ?>
+                    </label>
+                </li>
+            </ul>
+            <!-- Form hidden elements -->
+            <input type="hidden" id="paypal_ref_trans" name="paypal_ref_trans" value="1" />
+            <!-- Form hidden elements -->
+        <?php Endif; ?>
+    </div>
+    <!-- PayPal given form -->
+    <!-- Form hidden elements -->
+    <input type="hidden"
+           id="paypal_oneclick_shopping"
+           name="paypal_oneclick_shopping"
+           value="<?php echo $this->escapeHtml($oneClickShopping); ?>" />
+    <!-- Form hidden elements -->
+</ul>

@@ -1,0 +1,303 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+?>
+<?php $order = $this->getOrder() ?>
+<?php
+$orderAdminDate = $this->formatDate($order->getCreatedAtDate(), 'medium', true);
+$orderStoreDate = $this->formatDate($order->getCreatedAtStoreDate(), 'medium', true);
+?>
+<div class="box-left">
+    <!--Order Information-->
+    <div class="entry-edit">
+        <?php
+        if ($order->getEmailSent()) :
+            $email = Mage::helper('sales')->__('the order confirmation email was sent');
+        else:
+            $email = Mage::helper('sales')->__('the order confirmation email is not sent');
+        endif;
+        ?>
+        <div class="entry-edit-head">
+            <?php if ($this->getNoUseOrderLink()) : ?>
+                <h4 class="icon-head head-account">
+                    <?php
+                        echo $this->escapeHtml(Mage::helper('sales')->__('Order # %s', $order->getRealOrderId()));
+                    ?> (<?php echo $this->escapeHtml($email) ?>)
+                </h4>
+            <?php else: ?>
+                <a href="<?php echo $this->escapeHtml($this->getViewUrl($order->getId())) ?>">
+                    <?php echo $this->escapeHtml(Mage::helper('sales')->__('Order # %s', $order->getRealOrderId())) ?>
+                </a>
+                <strong>(<?php echo $this->escapeHtml($email) ?>)</strong>
+            <?php endif; ?>
+        </div>
+        <div class="fieldset">
+            <table cellspacing="0" class="form-list">
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->escapeHtml(Mage::helper('sales')->__('Order Date')) ?></label>
+                    </td>
+                    <td class="value"><strong><?php echo $this->escapeHtml($orderAdminDate) ?></strong></td>
+                </tr>
+                <?php if ($orderAdminDate != $orderStoreDate) : ?>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php
+                                    echo $this->escapeHtml(
+                                        Mage::helper('sales')->__(
+                                            'Order Date (%s)',
+                                            $order->getCreatedAtStoreDate()->getTimezone()
+                                        )
+                                    );
+                                ?>
+                            </label>
+                        </td>
+                        <td class="value"><strong><?php echo $this->escapeHtml($orderStoreDate) ?></strong></td>
+                    </tr>
+                <?php endif; ?>
+                <tr>
+                    <td class="label">
+                        <label><?php echo $this->escapeHtml(Mage::helper('sales')->__('Order Status')) ?></label>
+                    </td>
+                    <td class="value">
+                        <strong>
+                            <span id="order_status"><?php echo $this->escapeHtml($order->getStatusLabel()) ?></span>
+                        </strong>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label"><label>
+                        <?php echo $this->escapeHtml(Mage::helper('sales')->__('Purchased From')) ?>
+                    </label></td>
+                    <td class="value"><strong><?php echo $this->escapeHtml(($this->getOrderStoreName()), array('br')) ?></strong></td>
+                </tr>
+                <?php if ($order->getRelationChildId()) : ?>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Link to the New Order')) ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <a href="<?php echo $this->escapeHtml($this->getViewUrl($order->getRelationChildId())) ?>">
+                                <?php echo $this->escapeHtml($order->getRelationChildRealId()) ?>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($order->getRelationParentId()) : ?>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Link to the Previous Order')) ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <a href="<?php echo $this->escapeHtml($this->getViewUrl($order->getRelationParentId())) ?>">
+                                <?php echo $this->escapeHtml($order->getRelationParentRealId()) ?>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($order->getRemoteIp()) : ?>
+                    <tr>
+                        <td class="label">
+                            <label><?php echo $this->escapeHtml(Mage::helper('sales')->__('Placed from IP')) ?></label>
+                        </td>
+                        <td class="value">
+                            <strong>
+                                <?php
+                                echo $this->escapeHtml($order->getRemoteIp());
+                                echo ($order->getXForwardedFor()) ?
+                                    ' (' . $this->escapeHtml($order->getXForwardedFor()) . ')' : '';
+                                ?>
+                            </strong>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($order->getGlobalCurrencyCode() != $order->getBaseCurrencyCode()) : ?>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php
+                                    echo $this->escapeHtml(
+                                        Mage::helper('sales')->__(
+                                            '%s / %s rate:',
+                                            $order->getGlobalCurrencyCode(),
+                                            $order->getBaseCurrencyCode()
+                                        )
+                                    );
+                                ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <strong><?php echo $this->escapeHtml($order->getBaseToGlobalRate()) ?></strong>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+                <?php if ($order->getBaseCurrencyCode() != $order->getOrderCurrencyCode()) : ?>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php
+                                echo $this->escapeHtml(
+                                    Mage::helper('sales')->__(
+                                        '%s / %s rate:',
+                                        $order->getOrderCurrencyCode(),
+                                        $order->getBaseCurrencyCode()
+                                    )
+                                );
+                                ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <strong><?php echo $this->escapeHtml($order->getBaseToOrderRate()) ?></strong>
+                        </td>
+                    </tr>
+                <?php endif; ?>
+            </table>
+        </div>
+    </div>
+</div>
+<div class="box-right">
+    <!--Account Information-->
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-account">
+                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Account Information')) ?>
+            </h4>
+            <div class="tools"><?php echo $this->escapeHtml($this->getAccountEditLink()) ?></div>
+        </div>
+        <div class="fieldset">
+            <div class="hor-scroll">
+                <table cellspacing="0" class="form-list">
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Customer Name')) ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <?php if ($customerUrl = $this->getCustomerViewUrl()) : ?>
+                                <a href="<?php echo $this->escapeHtml($customerUrl) ?>" target="_blank">
+                                    <strong><?php echo $this->escapeHtml($order->getCustomerName()) ?></strong>
+                                </a>
+                            <?php else: ?>
+                                <strong><?php echo $this->escapeHtml($order->getCustomerName()) ?></strong>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <label>
+                                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Email')) ?>
+                            </label>
+                        </td>
+                        <td class="value">
+                            <a href="mailto:<?php echo $this->escapeHtml($order->getCustomerEmail()) ?>">
+                                <strong><?php echo $this->escapeHtml($order->getCustomerEmail()) ?></strong>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php if ($groupName = $this->getCustomerGroupName()) : ?>
+                        <tr>
+                            <td class="label">
+                                <label>
+                                    <?php echo $this->escapeHtml(Mage::helper('sales')->__('Customer Group')) ?>
+                                </label>
+                            </td>
+                            <td class="value"><strong><?php echo $this->escapeHtml($groupName) ?></strong></td>
+                        </tr>
+                    <?php endif; ?>
+                    <?php foreach ($this->getCustomerAccountData() as $data): ?>
+                        <tr>
+                            <td class="label"><label><?php echo $this->escapeHtml($data['label']) ?></label></td>
+                            <td class="value"><strong><?php echo $this->escapeHtml($data['value']) ?></strong></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="clear"></div>
+
+<div class="box-left">
+    <!--Billing Address-->
+    <div class="entry-edit">
+        <div class="entry-edit-head">
+            <h4 class="icon-head head-billing-address">
+                <?php echo $this->escapeHtml(Mage::helper('sales')->__('Billing Address')) ?>
+            </h4>
+            <div class="tools">
+                <?php echo $this->getAddressEditLink($order->getBillingAddress()) ?>
+            </div>
+        </div>
+        <fieldset>
+            <address><?php echo $this->escapeHtml(($order->getBillingAddress()->getFormated(true)), array('br')) ?></address>
+        </fieldset>
+    </div>
+</div>
+<?php if (!$this->getOrder()->getIsVirtual()) : ?>
+    <div class="box-right">
+        <!--Shipping Address-->
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-shipping-address">
+                    <?php echo $this->escapeHtml(Mage::helper('sales')->__('Shipping Address')); ?>
+                </h4>
+                <div class="tools">
+                    <?php echo $this->getAddressEditLink($order->getShippingAddress()) ?>
+                </div>
+            </div>
+            <fieldset>
+                <address><?php echo $this->escapeHtml(($order->getShippingAddress()->getFormated(true)), array('br')) ?></address>
+            </fieldset>
+        </div>
+    </div>
+<?php endif; ?>
+<div class="clear"></div>
+<?php
+$orderDate = strtotime(Mage::getSingleton('core/date')->gmtDate('Y-m-d', $order->getCreatedAt()));
+if (strtotime(Mage::getSingleton('core/date')->gmtDate('Y-m-d')) > $orderDate) :
+    ?>
+    <div class="box-left">
+        <div class="entry-edit">
+            <div class="entry-edit-head">
+                <h4 class="icon-head head-billing-address">
+                    <?php echo $this->escapeHtml(Mage::helper('sales')->__('Refund reference')) ?>
+                </h4>
+            </div>
+            <fieldset>
+                <table>
+                    <tr id="novalnet_refund_ref">
+                        <td style='width:200px;'><?php echo $this->escapeHtml($this->__('Refund reference')) ?> :</td>
+                        <td>
+                            <input type='text' name='nn_refund_ref' id='nn_refund_ref' value=''/>
+                        </td>
+                    </tr>
+                </table>
+            </fieldset>
+        </div>
+    </div>
+    <div class="clear"></div>
+<?php endif; ?>
+<?php if (!$this->getOrder()->getIsVirtual()) : ?>
+    <div class="clear"></div>
+<?php endif; ?>

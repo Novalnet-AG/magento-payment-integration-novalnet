@@ -1,0 +1,74 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$helper = Mage::helper('novalnet_payment');
+$vendorScriptUrl = $helper->getUrl('novalnet_payment/callback/');
+$apiKeyUrl = $helper->getUrl('adminhtml/novalnetpayment_api/');
+$scopeId = $helper->getScopeId();
+?>
+<div>
+    <input type="hidden"
+           name="apiKeyUrl"
+           id="apiKeyUrl"
+           value="<?php echo $this->escapeHtml($apiKeyUrl); ?>" />
+    <input type="hidden"
+           name="storeId"
+           id="storeId"
+           value="<?php echo $this->escapeHtml($scopeId); ?>" />
+    <input type="hidden"
+           name="nn_vendorscript_url"
+           id="nn_vendorscript_url"
+           value="<?php echo $this->escapeHtml($vendorScriptUrl); ?>" />
+    <input type="hidden"
+           name="nn_ip_error_one"
+           id="nn_ip_error_one"
+           value="<?php echo $this->escapeHtml($helper->__('You need to configure your outgoing server IP address ')); ?>" />
+    <input type="hidden"
+           name="nn_ip_error_two"
+           id="nn_ip_error_two"
+           value="<?php echo $this->escapeHtml($helper->__(' at Novalnet. Please configure it in Novalnet admin portal or contact technic@novalnet.de')); ?>" />
+    <input type="hidden"
+           name="nn_tariff_id"
+           id="nn_tariff_id"
+           value="<?php
+             echo $this->escapeHtml(Mage::getStoreConfig('novalnet_global/novalnet/tariff_id', $scopeId));
+           ?>" />
+    <input type="hidden"
+           name="nn_subsTariff_id"
+           id="nn_subsTariff_id"
+           value="<?php
+            echo $this->escapeHtml(Mage::getStoreConfig('novalnet_global/novalnet/subscrib_tariff_id', $scopeId));
+           ?>" />
+</div>
+
+<script type="text/javascript">
+    Translator.add(
+        'The minimum amount should be at least 9,99 EUR',
+        '<?php
+            echo $this->escapeHtml(
+                $helper->__('Minimum amount should be greater than or equal to 9,99 EUR')
+            );
+        ?>'
+    );
+    Translator.add(
+        'The period of the subsequent subscription cycle (E.g: 1d/1m/1y)',
+        '<?php
+            echo $this->escapeHtml($helper->__('The period of the subsequent subscription cycle (E.g: 1d/1m/1y)'))
+        ?>'
+    );
+</script>

@@ -1,0 +1,163 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+$code = $this->getMethodCode();
+$helper = Mage::helper('novalnet_payment');
+$billingInfo = $helper->getCheckout()->getQuote()->getBillingAddress();
+$customerSession = $helper->getCustomerSession();
+$dateOfBirth = ($customerSession->isLoggedIn() &&
+                $customerSession->getCustomer()->hasDob() ? $customerSession->getCustomer()->getDob() : '');
+$dateOfBirth = $dateOfBirth ? Mage::getSingleton('core/date')->gmtDate('Y-m-d', $dateOfBirth) : '';
+$company = $helper->getEndUserCompany();
+$orderTotal = $helper->getCheckout()->getQuote()->getGrandTotal();
+$priceHelper = Mage::helper('core');
+$formattedPrice = $priceHelper->currency($orderTotal, true, false);
+$instalmentPeriods = array();
+$allcycles = explode(',', $this->getInstalmentTotal());
+foreach($allcycles as $allcycle) {
+    if (($orderTotal / $allcycle) >= 9.99) {
+        $instalmentPeriods[$allcycle] = ($this->getInstalmentCycle() == 1)
+            ? $allcycle . __(' Cycles / ') . $priceHelper->currency($orderTotal / $allcycle, true, false) . __(' Every month', $this->getInstalmentCycle())
+            : $allcycle . __(' Cycles / ') . $priceHelper->currency($orderTotal / $allcycle, true, false) . __(' Every %s months', $this->getInstalmentCycle());
+    }
+}
+?>
+<ul class="form-list" id="payment_form_<?php echo $this->escapeHtml($code); ?>" style="display:none;">
+<input type="hidden" id="<?php echo $this->escapeHtml($code); ?>-order-total" value="<?= $orderTotal; ?>">
+    <!-- Payment logo -->
+    <div>
+        <?php if ($this->logoAvailableStatus()): ?>
+                <?php
+                    $imgpath = $helper->getPaymentLogoUrl() . "invoiceinstalment.png";
+                    if ($this->getMethod()->getConfigData('logo')):
+                        $imgpath = $helper->getCustomPaymentLogoUrl() . $this->getMethod()->getConfigData('logo');
+                    endif;
+                ?>
+                <img class="nn-logo-img"
+                     src="<?php echo $this->escapeHtml($imgpath); ?>"
+                     alt="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>"
+                     title="<?php echo $this->escapeHtml($this->getMethod()->getConfigData('title')); ?>" />
+            </a>
+        <?php endif; ?>
+    </div>
+    <!-- Payment logo -->
+    <!-- Payment description -->
+    <li>
+        <?php echo $this->escapeHtml($this->__('Invoice/Prepayment payment description')); ?>
+    </li>
+    <!-- Payment description -->
+    <!-- Information to the end customer -->
+    <?php if ($this->getUserInfo()): ?>
+        <li>
+            <?php echo $this->escapeHtml($this->getUserInfo()); ?>
+        </li>
+    <?php endif; ?>
+    <!-- Information to the end customer -->
+    <!-- Display the payment mode notification -->
+    <?php if ($this->getPaymentMode() == FALSE): ?>
+        <li>
+            <div class="nn-mode">
+                <?php
+                    echo $this->escapeHtml(
+                        $this->__(
+                            'Please Note: This transaction will run on TEST MODE and the amount will not be charged'
+                        )
+                    );
+                ?>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- Display the payment mode notification -->
+
+    <!-- DOB for invoice instalment payment guarantee -->
+    <?php if (!$company): ?>
+        <li>
+            <p class="required"><?php echo $this->escapeHtml($this->__('* Required Fields')); ?></p>
+            <label for="<?php echo $this->escapeHtml($code); ?>_dob" class="required">
+                <em>*</em><?php echo $this->escapeHtml($this->__('Date Of Birth')); ?>
+            </label>
+            <div class="input-box">
+                <input type="text"
+                       autocomplete="off"
+                       id="<?php echo $this->escapeHtml($code); ?>_dob"
+                       name="payment[dob_date]"
+                       maxlength="2"
+                       title="<?php echo $this->escapeHtml($this->__('DATE')); ?>"
+                       class="input-text required-entry validate-novalnet-date minimum-length-2"
+                       value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                       placeholder="<?php echo $this->escapeHtml($this->__('DD')); ?>"/>
+                <input type="text"
+                       autocomplete="off"
+                       id="<?php echo $this->escapeHtml($code); ?>_dob"
+                       name="payment[dob_month]"
+                       maxlength="2"
+                       title="<?php echo $this->escapeHtml($this->__('MONTH')); ?>"
+                       class="input-text required-entry validate-novalnet-month minimum-length-2"
+                       value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                       placeholder="<?php echo $this->escapeHtml($this->__('MM')); ?>"/>
+                <span class="autocomplete">
+                    <input type="text"
+                           autocomplete="off"
+                           id="<?php echo $this->escapeHtml($code); ?>_dob"
+                           name="payment[dob_year]"
+                           maxlength="4"
+                           onkeypress="autoCompleteYear(this)"
+                           title="<?php echo $this->escapeHtml($this->__('YEAR')); ?>"
+                           class="input-text required-entry validate-novalnet-year minimum-length-4 validate-length"
+                           value="<?php echo $this->escapeHtml($dateOfBirth); ?>"
+                           placeholder="<?php echo $this->escapeHtml($this->__('YYYY')); ?>"/>
+                </span>
+            </div>
+        </li>
+    <?php endif ?>
+    <!-- DOB for invoice instalment payment guarantee -->
+
+    <div class="nn-payment-instalment">
+        <h3><?php echo $this->escapeHtml(__('Choose your instalment plan')); ?></h3>
+        <p><?php echo $this->escapeHtml(__('Choose the financing option that best fits your needs and you will be charged based on that chosen plan')); ?></p>
+        <div class="control">
+            <strong>
+                <p>
+                    <span><?php echo $this->escapeHtml(__('Net loan amount: ')); ?></span>
+                    <span class="price"><?php echo $formattedPrice; ?></span>
+                </p>
+            </strong>
+            <select id="<?php /* @noEscape */ echo $code; ?>_instalment_period" name="novalnet_invoice_instalment_period"
+                    class="select required-entry validate-select">
+                <?php foreach ($instalmentPeriods as $instalmentKey => $instalmentValue) : ?>
+                    <option value="<?php echo $instalmentKey; ?>">
+                        <?php echo $instalmentValue; ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+    </div>
+    <?php $priceFormat = json_encode(Mage::app()->getLocale()->getJsPriceFormat());
+    $lang = Mage::app()->getLocale()->getLocaleCode();?>
+    <input type="hidden" name="instalmentPeriod" id="<?php /* @noEscape */ echo $code; ?>_InstalmentPeriod" value="<?php echo $this->getInstalmentCycle();  ?>">
+    <input type="hidden" name="priceFormat" id="<?php /* @noEscape */ echo $code; ?>_priceFormat" value='<?php echo $priceFormat;  ?>'>
+    <input type="hidden" name="current_lang" id="<?php /* @noEscape */ echo $code; ?>_current_lang" value='<?php echo $lang;  ?>'>
+    <div class="<?php echo $this->escapeHtml($code); ?>-instalment-details-table"></div>
+</ul>
+
+<script type="text/javascript">
+    Translator.add(
+        'Please enter valid birthdate',
+        '<?php echo $this->__('Please enter valid birthdate'); ?>'
+    );
+</script>

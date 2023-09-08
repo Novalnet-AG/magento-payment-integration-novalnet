@@ -1,0 +1,95 @@
+<?php
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+?>
+<div class="content-header">
+    <table cellspacing="0">
+        <tr>
+            <td><h3><?php echo $this->escapeHtml($this->getHeaderText()) ?></h3></td>
+            <td class="form-buttons">
+                <div id="recurring_buttons_view"><?php echo $this->getButtonsHtml() ?></div>
+                <div id="recurring_cancel_button_view" style="display:none;">
+                    <?php echo $this->_getCancelButtonWithReasons(); ?>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<?php echo $this->getViewHtml() ?>
+<!-- @var $this Mage_Sales_Block_Recurring_Profile_View -->
+
+<?php echo $this->getMessagesBlock()->getGroupedHtml() ?>
+
+<!-- info tabs -->
+<?php $infoTabs = $this->getChildGroup('info_tabs'); ?>
+
+<dl class="order-info">
+    <dt><?php echo $this->escapeHtml($this->__('About This Profile:')) ?></dt>
+    <dd>
+        <ul id="order-info-tabs">
+            <?php foreach ($infoTabs as $block): ?>
+                <?php if ($this->getObjectData($block, 'is_view_current')): ?>
+                    <li class="current">
+                        <strong>
+                            <?php echo $this->escapeHtml($this->getObjectData($block, 'view_label')) ?>
+                        </strong>
+                    </li>
+                <?php else: ?>
+                    <li>
+                        <a href="<?php echo $this->escapeHtml($this->getObjectData($block, 'view_url')) ?>">
+                            <?php
+                                echo $this->escapeHtml($this->escapeHtml($this->getObjectData($block, 'view_label')))
+                            ?>
+                        </a>
+                    </li>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </ul>
+    </dd>
+</dl>
+
+<div class="buttons-set">
+    <p class="back-link">
+        <a href="<?php echo $this->escapeHtml($this->getBackUrl()) ?>">
+            <small>&laquo; </small><?php echo $this->escapeHtml($this->__('Back to Recurring Profiles')) ?>
+        </a>
+    </p>
+</div>
+<script type="text/javascript">
+    function cancelButtonViewStatus(currentId, changeId)
+    {
+        document.getElementById(currentId).style.display = 'none';
+        document.getElementById(changeId).style.display = 'block';
+    }
+
+    function subscriptionCancel(message, url, cancelReason)
+    {
+        var reason = parseInt(document.getElementById('reason-unsubscribe').value);
+        var reasonText = document.getElementById('reason-unsubscribe');
+        var reasonTextValue = reasonText.options[reasonText.selectedIndex].innerHTML;
+
+        if (reason) {
+            if (confirm(message)) {
+                window.location.href = url + "?reason=" + reasonTextValue;
+            }
+        } else {
+            alert(cancelReason);
+        }
+        return false;
+    }
+</script>

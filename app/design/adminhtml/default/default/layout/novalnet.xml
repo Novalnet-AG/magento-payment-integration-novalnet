@@ -1,0 +1,158 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Novalnet payment extension
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Novalnet End User License Agreement
+ * that is bundled with this package in the file freeware_license_agreement.txt
+ *
+ * DISCLAIMER
+ *
+ * If you wish to customize Novalnet payment extension for your needs, please contact technic@novalnet.de for more information.
+ *
+ * @category   Novalnet
+ * @package    Novalnet_Payment
+ * @copyright  Copyright (c) 2019 Novalnet AG
+ * @license    https://www.novalnet.de/payment-plugins/kostenlos/lizenz
+ */
+-->
+<layout>
+    <!-- Includes necessary Novalnet script files for admin Novalnet information tab -->
+    <default>
+        <reference name="head">
+            <action method="addJs">
+                <script>novalnet/jquery-1.11.3.min.js</script>
+            </action>
+            <action method="addJs">
+                <script>novalnet/info.js</script>
+            </action>
+        </reference>
+    </default>
+    <!-- Includes necessary Novalnet script files for admin new orders -->
+    <adminhtml_sales_order_create_index>
+        <reference name="head">
+            <action method="addCss">
+                <name>novalnet.css</name>
+            </action>
+            <action method="addJs">
+                <script>novalnet/cc.js</script>
+            </action>
+            <action method="addJs">
+                <script>novalnet/sepa.js</script>
+            </action>
+        </reference>
+    </adminhtml_sales_order_create_index>
+    <!-- Novalnet module utility js -->
+    <default>
+        <reference name="notifications">
+            <block type="novalnet_payment/adminhtml_novalnetutility" name="novalnet_payment_novalnetutility"
+                   template="novalnet/novalnetutility.phtml"/>
+        </reference>
+    </default>
+    <!-- Includes auto api configuration template -->
+    <adminhtml_system_config_edit>
+        <reference name="head">
+            <action method="addJs">
+                <script>novalnet/vendorConfig.js</script>
+            </action>
+        </reference>
+        <reference name="content">
+            <block type="core/template" name="novalnet.config.form" template="novalnet/config/form.phtml" />
+        </reference>
+    </adminhtml_system_config_edit>
+    <!-- Sales order view -->
+    <adminhtml_sales_order_view>
+        <reference name="sales_order_tabs">
+            <!-- Novalnet transaction status overview -->
+            <block type="novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview"
+                   name="novalnet_payment_adminhtml_sales_order_view_tab_transactionOverview">
+            </block>
+            <action method="addTab">
+                <name>novalnet_payment_adminhtml_sales_order_view_tab_transactionOverview</name>
+                <block>novalnet_payment/adminhtml_sales_order_view_tab_transactionOverview</block>
+            </action>
+            <!-- Novalnet transaction traces overview -->
+            <block type="novalnet_payment/adminhtml_sales_order_view_tab_transactionTraces"
+                   name="novalnet_payment_adminhtml_sales_order_view_tab_transactionTraces">
+            </block>
+            <action method="addTab">
+                <name>novalnet_payment_adminhtml_sales_order_view_tab_transactionTraces</name>
+                <block>novalnet_payment/adminhtml_sales_order_view_tab_transactionTraces</block>
+            </action>
+            <!-- Novalnet Instalment status overview -->
+            <block type="novalnet_payment/adminhtml_sales_order_view_tab_instalment"
+                   name="novalnet_payment_adminhtml_sales_order_view_tab_instalment">
+            </block>
+            <action method="addTab">
+                <name>novalnet_payment_adminhtml_sales_order_view_tab_instalment</name>
+                <block>novalnet_payment/adminhtml_sales_order_view_tab_instalment</block>
+            </action>
+        </reference>
+        <reference name="order_tab_info">
+            <action method="setTemplate">
+                <template>novalnet/sales/order/view/tab/info.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_view>
+    <!-- Sales order creditmemo view -->
+    <adminhtml_sales_order_creditmemo_new>
+        <reference name="order_info">
+            <action method="setTemplate">
+                <template>novalnet/sales/order/view/info.phtml</template>
+            </action>
+        </reference>
+    </adminhtml_sales_order_creditmemo_new>
+    <!-- Novalnet orders grid -->
+    <adminhtml_novalnetpayment_sales_order_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_sales_order" name="novalnet_payment_sales_order" />
+        </reference>
+    </adminhtml_novalnetpayment_sales_order_index>
+    <!-- Novalnet transaction status grid -->
+    <adminhtml_novalnetpayment_transactionoverview_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactionoverview" name="novalnet_payment_transactionoverview" />
+        </reference>
+    </adminhtml_novalnetpayment_transactionoverview_index>
+    <!-- Novalnet transaction status view -->
+    <adminhtml_novalnetpayment_transactionoverview_view>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactionoverview_view" name="novalnet_payment_transactionoverview_view"
+                   template="novalnet/transaction/view/status.phtml">
+            </block>
+        </reference>
+    </adminhtml_novalnetpayment_transactionoverview_view>
+    <!-- Novalnet transaction traces grid -->
+    <adminhtml_novalnetpayment_transactiontraces_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactiontraces" name="novalnet_payment_transactiontraces" />
+        </reference>
+    </adminhtml_novalnetpayment_transactiontraces_index>
+    <!-- Novalnet transaction traces view -->
+    <adminhtml_novalnetpayment_transactiontraces_view>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_transactiontraces_view" name="novalnet_payment_transactiontraces_view"
+                   template="novalnet/transaction/view/traces.phtml">
+            </block>
+        </reference>
+    </adminhtml_novalnetpayment_transactiontraces_view>
+    <!-- Novalnet recurring profile grid -->
+    <adminhtml_novalnetpayment_sales_recurring_profile_index>
+        <reference name="content">
+            <block type="novalnet_payment/adminhtml_recurring_profile" name="novalnet_payment_adminhtml_recurring_profile" />
+        </reference>
+    </adminhtml_novalnetpayment_sales_recurring_profile_index>
+    <!-- Novalnet recurring profile view -->
+    <adminhtml_sales_recurring_profile_view>
+        <reference name="sales.recurring.profile.view">
+            <block type="novalnet_payment/adminhtml_recurring_profile_view" name="sales.recurring.profile.view"
+                   template="novalnet/recurring/profile/view.phtml">
+                <action method="setDestElementId">
+                    <value>sales_recurring_profile_view</value>
+                </action>
+            </block>
+        </reference>
+    </adminhtml_sales_recurring_profile_view>
+</layout>
